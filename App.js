@@ -15,7 +15,6 @@ import {
   Alert, 
   StatusBar, 
 } from 'react-native';
-// import Sidebar from './components/navigation/sidebar'
 
 const Stack = createStackNavigator()
 
@@ -45,7 +44,7 @@ const App = () => {
 
   useEffect(  () => {
     BackHandler.addEventListener("hardwareBackPress", backAction);
-    StatusBar.setTranslucent(false)
+    StatusBar.setTranslucent(true)
     StatusBar.setBackgroundColor('#FF573300'); 
     StatusBar.setBarStyle('dark-content')
     

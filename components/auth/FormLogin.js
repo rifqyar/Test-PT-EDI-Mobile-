@@ -84,44 +84,41 @@ export default class FormLogin extends Component {
         this.setState({
             showLoading: true
         });
-        setTimeout(() => {
-            axios.post(`${api}api/login`,{
-                email: this.state.email,
-                password: this.state.password,
-            }).then(res => {
-                AsyncStorage.setItem('token', res.data.token)
-                AsyncStorage.setItem('user', JSON.stringify(res.data.user))
+        axios.post(`${api}api/login`,{
+            email: this.state.email,
+            password: this.state.password,
+        }).then(res => {
+            AsyncStorage.setItem('token', res.data.token)
+            AsyncStorage.setItem('user', JSON.stringify(res.data.user))
+            this.setState({
+                showLoading: false
+            });
+
+            this.props.navigation.push('Home', {
+                user: JSON.stringify(res.data.user),
+                token: res.data.token
+            })
+        }).catch(err => {
+            console.log(err)
+            if (err.message == 'Network Error') {
+                Alert.alert(
+                    'Tidak dapat terhubung ke server', 
+                    'Periksa jaringan anda',
+                    [{ text: "OK", onPress: () => {
+                        this.props.navigation.push('SignIn')
+                    }}]
+                );
+            } else {
+                Alert.alert(
+                    'Login gagal!', 
+                    'email atau password salah',
+                );
+
                 this.setState({
                     showLoading: false
                 });
-
-                this.props.navigation.push('Home', {
-                    user: JSON.stringify(res.data.user),
-                    token: res.data.token
-                })
-            }).catch(err => {
-                console.log(err)
-                if (err.message == 'Network Error') {
-                    Alert.alert(
-                        'Tidak dapat terhubung ke server', 
-                        'Periksa jaringan anda',
-                        [{ text: "OK", onPress: () => {
-                            this.props.navigation.push('SignIn')
-                        }}]
-                    );
-                } else {
-                    // Alert.alert(
-                    //     'Login gagal!', 
-                    //     'email atau password salah',
-                    // );
-
-                    this.setState({
-                        showLoading: false
-                    });
-                }
-            })
-            // this.props.navigation.push('Home')
-        }, 2000);
+            }
+        })
     }
 
     render() {
@@ -151,9 +148,8 @@ export default class FormLogin extends Component {
 			        error={errors.email}
 			        ref={this.emailRef} 
                     dense
-                    left={
-                        <TextInput.Icon name={() => <Icon name={'person'} size={20} color={COLORS.white}/>}/>
-                    }
+                    left={<TextInput.Icon icon="email"/>} 
+
                 />
                 <HelperText type="error" visible={errors.email ? true : false }>
                     {errors.email}
@@ -178,9 +174,7 @@ export default class FormLogin extends Component {
 			        error={errors.password}
 			        ref={this.passRef} 
                     dense
-                    left={
-                        <TextInput.Icon name={() => <Icon name={'vpn-key'} size={20} color={COLORS.white} />}/>
-                    }
+                    left={<TextInput.Icon icon="key"/>} 
                 />
                 <HelperText type="error" visible={errors.password ? true : false }>
                     {errors.password}

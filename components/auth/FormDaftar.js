@@ -10,21 +10,21 @@ import {
 } from 'react-native-paper'
 
 import { COLORS, SIZES } from '../../constants/theme'
-import Icon from 'react-native-vector-icons/MaterialIcons'
+import {API as api} from '../../app.json'
+import axios from 'axios'
 
 export default class FormDaftar extends Component {
     constructor(props){
         super(props);
         
-        this.userRef = this.updateRef.bind(this, 'username');
+        this.userRef = this.updateRef.bind(this, 'nama');
 	    this.passRef = this.updateRef.bind(this, 'password');
         this.emailRef = this.updateRef.bind(this, 'email');
-        this.onChangeText = this.onChangeText.bind(this)
         this.onFocus = this.onFocus.bind(this)
         this.handleRegisButton = this.handleRegisButton.bind(this)
 
         this.state = {
-            username: null,
+            nama: null,
             password: null,
             email: null,
             input: {
@@ -44,16 +44,6 @@ export default class FormDaftar extends Component {
         this[name] = ref;
     }
 
-    onChangeText = (text) => {
-        ['email', 'username', 'password']
-        .map((name) => ({ name, ref: this[name] }))
-        .forEach(({ name, ref }) => {
-        if (ref.isFocused()) {
-            this.setState({ [name]: text });
-        }
-        });
-    }
-
     onFocus() {
         let { errors = {} } = this.state;
     
@@ -69,18 +59,22 @@ export default class FormDaftar extends Component {
     
 	handleRegisButton = () => {
 		let errors = {};
+        let next = true;
 
-        ['email', 'username', 'password']
+        ['nama', 'email', 'password']
         .forEach((name) => {
-            let value = this[name].props.value;
+            let value = this.state[name];
 
             if (value == null || value == "") {
                 errors[name] = `Kolom ${name} Tidak boleh kosong`;
+                next = false;
             }
         });
 
-        this.setState({ errors }, function() {
-            this.handlePostData()
+        this.setState({ errors }, function(){
+            if (next){
+                this.handlePostData()
+            }
         });
 	}
 
@@ -89,9 +83,29 @@ export default class FormDaftar extends Component {
             showLoading: true
         });
 
-        setTimeout(() => {
-            this.props.navigation.push('DataDiri')
-        }, 2000);
+        axios.post(`${api}api/user/store`,{
+            name: this.state.nama,
+            email: this.state.email,
+            password: this.state.password,
+            id_role: 0
+        }).then(res => {
+            this.setState({
+                showLoading: false
+            });
+
+            this.props.navigation.push('SignIn')
+        }).catch(err => {
+            if (err.message == 'Network Error') {
+                Alert.alert(
+                    'Tidak dapat terhubung ke server', 
+                    'Periksa jaringan anda'
+                );
+            } else {
+                this.setState({
+                    showLoading: false
+                });
+            }
+        })
     }
 
     render() {
@@ -102,6 +116,30 @@ export default class FormDaftar extends Component {
                     marginTop: SIZES.padding * 3,
                     marginHorizontal: SIZES.padding * 3
                 }}>
+
+                {/* Username  */}
+                <TextInput
+                    label="Nama Lengkap"
+                    onChangeText={(text) => this.setState({
+                        nama:text
+                    })}
+                    underlineColor={COLORS.white}
+                    style={{
+                        backgroundColor:COLORS.transparent
+                    }}
+                    theme={this.state.input.theme}
+                    value={this.state.nama}
+			        onFocus={this.onFocus}
+			        error={errors.nama}
+			        ref={this.userRef}
+                    dense
+                    left={<TextInput.Icon icon="account-circle"/>} 
+
+                />
+                <HelperText type="error" visible={errors.nama ? true : false }>
+                    {errors.nama}
+                </HelperText>
+                {/* End username */}
 
                 {/* Email  */}
                 <TextInput
@@ -115,65 +153,23 @@ export default class FormDaftar extends Component {
                     }}
                     theme={this.state.input.theme}
                     value={this.state.email}
-                    onChangeText={this.onChangeText}
 			        onFocus={this.onFocus}
 			        error={errors.email}
 			        ref={this.emailRef}
                     dense
-                    left={
-                        <TextInput.Icon 
-                            name={() => 
-                                <Icon 
-                                    name={'mail'} 
-                                    size={20} 
-                                    color={errors.email ? COLORS.Red : COLORS.white} 
-                                />
-                            }
-                        />
-                    }
+                    left={<TextInput.Icon icon="email"/>} 
                 />
                 <HelperText type="error" visible={errors.email ? true : false }>
                     {errors.email}
                 </HelperText>
                 {/* End email */}
-
-                {/* Username  */}
-                <TextInput
-                    label="Username"
-                    onChangeText={(text) => this.setState({
-                        username:text
-                    })}
-                    underlineColor={COLORS.white}
-                    style={{
-                        backgroundColor:COLORS.transparent
-                    }}
-                    theme={this.state.input.theme}
-                    value={this.state.username}
-                    onChangeText={this.onChangeText}
-			        onFocus={this.onFocus}
-			        error={errors.username}
-			        ref={this.userRef}
-                    dense
-                    left={
-                        <TextInput.Icon 
-                            name={() => 
-                                <Icon 
-                                    name={'person'} 
-                                    size={20} 
-                                    color={errors.username ? COLORS.Red : COLORS.white} 
-                                />
-                            }
-                        />
-                    }
-                />
-                <HelperText type="error" visible={errors.username ? true : false }>
-                    {errors.username}
-                </HelperText>
-                {/* End username */}
                   
                 {/* Password */}
                 <TextInput
                     label="Password"
+                    onChangeText={(text) => this.setState({
+                        password:text
+                    })}
                     underlineColor={COLORS.white}
                     style={{
                         backgroundColor:COLORS.transparent,
@@ -181,22 +177,11 @@ export default class FormDaftar extends Component {
                     theme={this.state.input.theme}
                     secureTextEntry={true}
                     value={this.state.password}
-                    onChangeText={this.onChangeText}
 			        onFocus={this.onFocus}
 			        error={errors.password}
 			        ref={this.passRef}
                     dense
-                    left={
-                        <TextInput.Icon 
-                            name={() => 
-                                <Icon 
-                                    name={'lock'} 
-                                    size={20} 
-                                    color={errors.password ? COLORS.Red : COLORS.white} 
-                                />
-                            }
-                        />
-                    } 
+                    left={<TextInput.Icon icon="key"/>} 
                 />
                 <HelperText type="error" visible={errors.password ? true : false }>
                     {errors.password}
@@ -216,7 +201,7 @@ export default class FormDaftar extends Component {
                 }}
                 color={COLORS.blackLighten2}
                 onPress={() => this.handleRegisButton()}>
-                    Lanjutkan
+                    Daftar
                 </Button>
             </View>
         )

@@ -23,7 +23,6 @@ const Wellcome = (props) => {
         try {
             const value = await AsyncStorage.getItem('token')
             if(value !== null) {
-                props.navigation.push('SignIn')
                 cekTokenExpired(value)
             } else {
                 props.navigation.push('SignIn')

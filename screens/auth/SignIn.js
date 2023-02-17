@@ -54,7 +54,7 @@ export default class SignIn extends Component {
                         }}>
                             Belum punya akun?
                             <Text 
-                                onPress={() => this.handleNavigate()}
+                                onPress={() => this.handleNavigate(this.props.navigation)}
                                 style={{
                                     color: COLORS.black, 
                                 }}> Daftar disini</Text>
